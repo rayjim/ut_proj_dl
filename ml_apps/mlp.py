@@ -143,12 +143,10 @@ def homework(train_X, train_y, test_X):
 
         def train(self, X, t, eps=0.1, n_epoch=10, batch_size=10):
             # Online Learning
-            for n in range(n_epoch):
-                eps = 1*eps
+            n_batch = int(X.shape[0]/batch_size)
+            for i_iter in range(n_epoch):
                 cost = 0
-                if n > 30:
-                    batch_size = 10
-                n_batch = int(X.shape[0]/batch_size)
+                eps = 1*eps
                 for ii in range(n_batch):
                     cost = cost + self.train_one_epoch(X[ii*batch_size:(ii+1) *
                                                          batch_size, :],
@@ -156,6 +154,7 @@ def homework(train_X, train_y, test_X):
                                                          batch_size],
                                                        batch_size=batch_size,
                                                        eps=eps)
+                print ("cost at {} iteration is {}".format(i_iter, cost))
 
         def predict(self, X):
             self.y_given_x = self.f_props(X)
@@ -165,10 +164,43 @@ def homework(train_X, train_y, test_X):
     ls_layers = [500]
     n_out = 10
     mlp = MLP(n_in, n_out, ls_layers=ls_layers)
-    mlp.train(train_X, train_y, n_epoch=50, batch_size=100)
+    mlp.train(train_X, train_y, n_epoch=50, batch_size=10)
     pred_y = mlp.predict(test_X)
 
     return pred_y
 
 if __name__ == '__main__':  # pragma: no coverage
-    pass
+
+    from sklearn.utils import shuffle
+    from sklearn.metrics import f1_score
+    from sklearn.datasets import fetch_mldata
+    from sklearn.cross_validation import train_test_split
+
+    def load_mnist():
+        mnist = fetch_mldata('MNIST original')
+        mnist_X, mnist_y = shuffle(mnist.data.astype('float32'),
+                                   mnist.target.astype('int32'),
+                                   random_state=42)
+
+        mnist_X = mnist_X / 255.0
+
+        train_X, test_X, train_y, test_y = train_test_split(mnist_X, mnist_y,
+                                                            test_size=0.2,
+                                                            random_state=42)
+
+        return (train_X, test_X, train_y, test_y)
+
+    def check_homework():
+        train_X, test_X, train_y, test_y = load_mnist()
+        # validate for small dataset
+        train_X_mini = train_X
+        train_y_mini = train_y
+        test_X_mini = test_X
+        test_y_mini = test_y
+
+        pred_y = homework(train_X_mini, train_y_mini, test_X_mini)
+        return f1_score(test_y_mini, pred_y, average='macro')
+    import time
+    start = time.time()
+    print "f1 score is {}".format(check_homework())
+    print "time is {}".format(time.time()-start)

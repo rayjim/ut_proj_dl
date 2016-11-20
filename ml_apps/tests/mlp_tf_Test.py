@@ -8,7 +8,7 @@ from sklearn.utils import shuffle
 from sklearn.metrics import f1_score
 from sklearn.datasets import fetch_mldata
 from sklearn.cross_validation import train_test_split
-import ml_apps.mlp as mlp
+import ml_apps.mlp_tf as mlp
 
 
 def load_mnist():

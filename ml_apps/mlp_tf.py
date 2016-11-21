@@ -127,9 +127,10 @@ def shared_dataset(data_xy, borrow=True):
 
 
 def test_mlp(datasets):
-    valid_X, valid_y = datasets[1]
-    print datasets[0][1].shape
+
     train_X, train_y = shared_dataset(datasets[0])
+    valid_X, aa = shared_dataset(datasets[1])
+    valid_y = datasets[1][1]
     # test_X, test_y = datasets[2]
     layers = [
         Layer(784, 500, T.nnet.sigmoid),
@@ -158,28 +159,34 @@ def test_mlp(datasets):
 
     batch_size = 100
 
-    train = theano.function(inputs=[epoch, index], outputs=cost,
+    train = theano.function(inputs=[epoch, index], outputs=[cost],
                             updates=updates,
                             givens={
                             x: train_X[index * batch_size:(index + 1) * batch_size],
-                            t: train_y[index * batch_size:(index + 1) * batch_size]})
-    
-    valid = theano.function(inputs=[x, t], outputs=[cost, T.argmax(y, axis=1)],
-                            allow_input_downcast=True, name='valid')
+                            t: train_y[index * batch_size:(index + 1) * batch_size]},
+                            on_unused_input='warn')
+
+    valid = theano.function(inputs=[],
+                            outputs=y,
+                            givens={
+                                x: valid_X},
+                             on_unused_input='warn')
     # test = theano.function(inputs=[x], outputs=T.argmax(y, axis=1),\
                             # name='test')
 
-    n_batches = train_X.shape[0]//batch_size
+    n_batches = (train_X.get_value(borrow=True).shape[0]//batch_size)
+    print n_batches
     for epoch in range(1, 101):
         # train_X, train_y = shuffle(train_X, train_y)
         for index in xrange(n_batches):
-            print index * batch_size
-            train(index, epoch)
-        valid_cost, pred_y = valid(valid_X, valid_y)
-        print('EPOCH:: %i, Validation cost: %.3f, Validation F1: %.3f' %
-              (epoch + 1, valid_cost,
-               f1_score(np.argmax(valid_y, axis=1).astype('int32'),
-                        pred_y, average='macro')))
+            train(epoch, index)
+        pred_y = valid()
+        print np.argmax(pred_y, axis=1)
+        #print valid_y.get_value()
+        print('EPOCH:: %i, Validation F1: %.3f' %
+              (epoch + 1,
+               f1_score(valid_y,
+                        np.argmax(pred_y, axis=1), average='macro')))
 
 
 def load_mnist():

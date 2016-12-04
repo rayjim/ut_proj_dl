@@ -161,7 +161,7 @@ def homework(train_X, train_y, test_X):
             y = np.argmax(self.y_given_x, axis=1)
             return y
     n_in = train_X.shape[1]
-    ls_layers = [500]
+    ls_layers = [500, 500]
     n_out = 10
     mlp = MLP(n_in, n_out, ls_layers=ls_layers)
     mlp.train(train_X, train_y, n_epoch=50, batch_size=10)

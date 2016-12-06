@@ -83,31 +83,31 @@ def homework(train_X, train_y, test_X):
                 raise NotImplementedError("we are currently not supported other \
                                             activation function")
 
-            self.layers = []
+            self.layers_dropout = []
             # added sigmoid layer
             for i_layer in range(len(ls_layers)):
                 if i_layer == 0:
                     sigmoid_layer = Layer(self.in_dim, ls_layers[i_layer],
                                           func, deriv_func)
-                    self.layers.append(sigmoid_layer)
+                    self.layers_dropout.append(sigmoid_layer)
                 else:
-                    sigmoid_layer = Layer(self.layers[i_layer-1].out_dim,
+                    sigmoid_layer = Layer(self.layers_dropout[i_layer-1].out_dim,
                                           ls_layers[i_layer], func, deriv_func)
-                    self.layers.append(sigmoid_layer)
+                    self.layers_dropout.append(sigmoid_layer)
 
             # added softmax layer
-            softmax_layer = Layer(self.layers[-1].out_dim, self.out_dim,
+            softmax_layer = Layer(self.layers_dropout[-1].out_dim, self.out_dim,
                                   softmax, deriv_softmax)
-            self.layers.append(softmax_layer)
+            self.layers_dropout.append(softmax_layer)
 
         def f_props(self, x):
             z = x
-            for layer in self.layers:
+            for layer in self.layers_dropout:
                 z = layer.f_prop(z)
             return z
 
         def b_props(self, delta):
-            for i, layer in enumerate(self.layers[::-1]):
+            for i, layer in enumerate(self.layers_dropout[::-1]):
                 if i == 0:
                     layer.delta = delta
                 else:
@@ -131,7 +131,7 @@ def homework(train_X, train_y, test_X):
 
             # Update Parameters
             z = X
-            for i, layer in enumerate(self.layers):
+            for i, layer in enumerate(self.layers_dropout):
                 dW = z.T.dot(layer.delta)
                 db = np.ones(len(z)).dot(layer.delta)
                 layer.v_W = self.momentum*layer.v_W - eps*dW/float(batch_size)

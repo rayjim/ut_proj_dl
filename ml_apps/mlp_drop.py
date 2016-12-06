@@ -326,7 +326,7 @@ class MLP(object):
         self.train = T.iscalar('train')
 
         """network structure definition"""
-        self.layers = []
+        self.layers_dropout = []
         self.params = []
         for i in xrange(self.n_layer + 1):
             """for first hidden layer"""
@@ -339,13 +339,13 @@ class MLP(object):
                 layer_n_input = self.n_hidden[i - 1]
                 layer_n_output = self.n_hidden[i]
                 layer_input = dropout(
-                    self.rng, self.layers[-1].output, self.train)
+                    self.rng, self.layers_dropout[-1].output, self.train)
                 activation = relu
             else:
                 """for output layer"""
                 layer_n_input = self.n_hidden[-1]
                 layer_n_output = self.n_output
-                layer_input = self.layers[-1].output
+                layer_input = self.layers_dropout[-1].output
                 activation = None
 
             layer = FullyConnectedLayer(
@@ -355,7 +355,7 @@ class MLP(object):
                 n_output=layer_n_output,
                 activation=activation
             )
-            self.layers.append(layer)
+            self.layers_dropout.append(layer)
             self.params.extend(layer.params)
 
         """regularization"""
@@ -363,7 +363,7 @@ class MLP(object):
         # self.L2 = abs(self.h1.W**2).sum() + abs(self.pred_y.W**2).sum()
 
         """loss accuracy error"""
-        self.metric = Metric(self.layers[-1].output, self.y)
+        self.metric = Metric(self.layers_dropout[-1].output, self.y)
         # + L1_reg*self.L1 + L2_reg*self.L2
         self.loss = self.metric.negative_log_likelihood()
         self.accuracy = self.metric.accuracy()
@@ -406,7 +406,7 @@ class MLP(object):
 
         self.generate_prediction = theano.function(
             inputs=[],
-            outputs=[self.layers[-1].output],
+            outputs=[self.layers_dropout[-1].output],
             givens={
                 self.x: self.x_test,
                 self.train: np.cast['int32'](0)

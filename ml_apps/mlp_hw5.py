@@ -696,7 +696,7 @@ def homework(train_X, train_y, test_X):
                 acc[-1] /= self.n_train_batches
                 loss[-1] /= self.n_train_batches
                 end = time.time()
-                if end-self.start > 3200:
+                if end-self.start > 6400:
                     break
                 print ('epoch: {0}, train mean loss={1}, train accuracy={2}'.format(epoch, loss[-1], acc[-1]))
 
